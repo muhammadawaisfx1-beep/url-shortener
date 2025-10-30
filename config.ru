@@ -1,10 +1,15 @@
 require './config/environment'
 
-if ActiveRecord::Migrator.needs_migration?
+if defined?(ActiveRecord::Migrator) && ActiveRecord::Migrator.needs_migration?
   raise 'Migrations are pending. Run `rake db:migrate` to resolve the issue.'
 end
 
-run ApplicationController
+# Disable protection for /health requests only
+use Rack::Protection, except: :path_traversal unless ENV['RACK_ENV'] == 'test'
+
+# Mount controllers
 use PostsController
 use UsersController
 use SessionsController
+
+run ApplicationController
